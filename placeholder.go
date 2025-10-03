@@ -269,7 +269,13 @@ func ParsePlaceholders(runs DocumentRuns, docBytes []byte) (placeholders []*Plac
 // Example: openPos := []int{10,20,30}; closePos := []int{13, 23, 33} resulting in 3 fragments (10,13),(20,23),(30,33)
 // The n-th elements inside openPos and closePos must be matching delimiter positions.
 func assembleFullPlaceholders(run *Run, openPos, closePos []int) (placeholders []*Placeholder) {
-	for i := 0; i < len(openPos); i++ {
+	// Ensure we have matching pairs - take the minimum length to avoid index out of range
+	minLen := len(openPos)
+	if len(closePos) < minLen {
+		minLen = len(closePos)
+	}
+
+	for i := 0; i < minLen; i++ {
 		start := openPos[i]
 		end := closePos[i] + 1 // +1 is required to include the closing delimiter in the text
 		fragment := NewPlaceholderFragment(0, Position{int64(start), int64(end)}, run)
