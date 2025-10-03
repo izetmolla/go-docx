@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,22 +16,22 @@ import (
 )
 
 const (
-	// DocumentXml is the relative path where the actual document content resides inside the docx-archive.
+	// DocumentXml is the relative path where the actual document content resides inside the DOCX archive.
 	DocumentXml = "word/document.xml"
 )
 
 var (
-	// HeaderPathRegex matches all header files inside the docx-archive.
+	// HeaderPathRegex matches all header files inside the DOCX archive.
 	HeaderPathRegex = regexp.MustCompile(`word/header[0-9]*.xml`)
-	// FooterPathRegex matches all footer files inside the docx-archive.
+	// FooterPathRegex matches all footer files inside the DOCX archive.
 	FooterPathRegex = regexp.MustCompile(`word/footer[0-9]*.xml`)
-	// MediaPathRegex matches all media files inside the docx-archive.
+	// MediaPathRegex matches all media files inside the DOCX archive.
 	MediaPathRegex = regexp.MustCompile(`word/media/*`)
 )
 
-// Document exposes the main API of the library.  It represents the actual docx document which is going to be modified.
-// Although a 'docx' document actually consists of multiple xml files, that fact is not exposed via the Document API.
-// All actions on the Document propagate through the files of the docx-zip-archive.
+// Document represents a DOCX file and provides methods for manipulating its content.
+// Internally, a DOCX file is a ZIP archive containing multiple XML files.
+// This complexity is abstracted away, exposing a simple API for common operations.
 type Document struct {
 	path     string
 	docxFile *os.File
@@ -54,30 +53,29 @@ type Document struct {
 	fileReplacers    map[string]*Replacer
 }
 
-// Open will open and parse the file pointed to by path.
-// The file must be a valid docx file or an error is returned.
+// Open loads a DOCX file from disk and returns a parsed Document ready for manipulation.
+// The file must be a valid DOCX file or an error is returned.
 func Open(path string) (*Document, error) {
 	fh, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("unable to open .docx docxFile: %s", err)
+		return nil, fmt.Errorf("unable to open DOCX file: %w", err)
 	}
 
 	rc, err := zip.OpenReader(path)
 	if err != nil {
-		return nil, fmt.Errorf("unable to open zip reader: %s", err)
+		return nil, fmt.Errorf("unable to open ZIP reader: %w", err)
 	}
 
 	return newDocument(&rc.Reader, path, fh)
 }
 
-// OpenBytes allows to create a Document from a byte slice.
-// It behaves just like Open().
-//
-// Note: In this case, the docxFile property will be nil!
+// OpenBytes creates a Document from a byte slice containing DOCX data.
+// This is useful for processing DOCX files that are already loaded in memory.
+// No file handle is opened; the document is parsed directly from the provided bytes.
 func OpenBytes(b []byte) (*Document, error) {
 	rc, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
 	if err != nil {
-		return nil, fmt.Errorf("unable to open zip reader: %s", err)
+		return nil, fmt.Errorf("unable to open ZIP reader: %w", err)
 	}
 
 	return newDocument(rc, "", nil)
@@ -104,12 +102,12 @@ func newDocument(zipFile *zip.Reader, path string, docxFile *os.File) (*Document
 	ResetFragmentIdCounter()
 
 	if err := doc.parseArchive(); err != nil {
-		return nil, fmt.Errorf("error parsing document: %s", err)
+		return nil, fmt.Errorf("error parsing archive: %w", err)
 	}
 
 	// a valid docx document should really contain a document.xml :)
 	if _, exists := doc.files[DocumentXml]; !exists {
-		return nil, fmt.Errorf("invalid docx archive, %s is missing", DocumentXml)
+		return nil, fmt.Errorf("invalid DOCX archive, %s is missing", DocumentXml)
 	}
 
 	// parse all files
@@ -307,7 +305,7 @@ func (d *Document) parseArchive() error {
 			return nil
 		}
 		defer readCloser.Close()
-		fileBytes, err := ioutil.ReadAll(readCloser)
+		fileBytes, err := io.ReadAll(readCloser)
 		if err != nil {
 			return nil
 		}
@@ -423,7 +421,8 @@ func (d *Document) isModifiedFile(searchFileName string) bool {
 	return false
 }
 
-// Close will close everything :)
+// Close releases resources held by this Document (e.g., file handle if opened from disk).
+// It is safe to call Close multiple times.
 func (d *Document) Close() {
 	if d.docxFile != nil {
 		err := d.docxFile.Close()
@@ -431,73 +430,6 @@ func (d *Document) Close() {
 			log.Println(err)
 		}
 	}
-}
-
-// CompleteTemplateFromBytesToBytes processes a template from bytes and returns the processed bytes.
-// This function is designed for serverless processing where no file system is involved.
-// It takes template bytes, processes them with the given data, and returns the processed bytes.
-func CompleteTemplateFromBytesToBytes(templateBytes []byte, data PlaceholderMap) ([]byte, error) {
-	// Create document from template bytes
-	doc, err := OpenBytes(templateBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open template bytes: %w", err)
-	}
-	defer doc.Close()
-
-	// Replace all placeholders with data
-	err = doc.ReplaceAll(data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to replace placeholders: %w", err)
-	}
-
-	// Write to bytes buffer
-	var buf bytes.Buffer
-	err = doc.Write(&buf)
-	if err != nil {
-		return nil, fmt.Errorf("failed to write processed document: %w", err)
-	}
-
-	return buf.Bytes(), nil
-}
-
-// CompleteTemplateFromBytesToBytesWithFuncs processes a template from bytes with custom functions and returns the processed bytes.
-// This function is designed for serverless processing where no file system is involved.
-// It takes template bytes, processes them with the given data and custom functions, and returns the processed bytes.
-func CompleteTemplateFromBytesToBytesWithFuncs(templateBytes []byte, data PlaceholderMap, funcMap map[string]interface{}) ([]byte, error) {
-	// Create document from template bytes
-	doc, err := OpenBytes(templateBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open template bytes: %w", err)
-	}
-	defer doc.Close()
-
-	// Apply custom functions to data if provided
-	if funcMap != nil {
-		processedData := make(PlaceholderMap)
-		for key, value := range data {
-			processedData[key] = value
-		}
-
-		// Apply functions to data (this is a placeholder for function processing)
-		// In a real implementation, you would process the data through the function map
-		// For now, we'll just use the data as-is
-		data = processedData
-	}
-
-	// Replace all placeholders with data
-	err = doc.ReplaceAll(data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to replace placeholders: %w", err)
-	}
-
-	// Write to bytes buffer
-	var buf bytes.Buffer
-	err = doc.Write(&buf)
-	if err != nil {
-		return nil, fmt.Errorf("failed to write processed document: %w", err)
-	}
-
-	return buf.Bytes(), nil
 }
 
 // FileMap is just a convenience type for the map of fileName => fileBytes

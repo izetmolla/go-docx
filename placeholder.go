@@ -14,7 +14,9 @@ var (
 	CloseDelimiter rune = '}'
 )
 
-// ChangeOpenCloseDelimiter is used for change the open and close delimiters
+// ChangeOpenCloseDelimiter changes the global delimiters used for placeholders.
+// Call this before opening a document to use custom delimiters.
+// The default delimiters are '{' and '}'.
 func ChangeOpenCloseDelimiter(openDelimiter, closeDelimiter rune) {
 	OpenDelimiter = openDelimiter
 	CloseDelimiter = closeDelimiter
