@@ -11,8 +11,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-
-	"golang.org/x/net/html"
 )
 
 const (
@@ -246,31 +244,15 @@ func (d *Document) countPlaceholders(file string, placeholderMap PlaceholderMap)
 	return placeholderCount
 }
 
-// stripXmlTags is a stdlib way of stripping out all xml tags using the html.Tokenizer.
-// The returned string will be everything except the tags.
+// stripXmlTags strips out all XML tags and returns the text content.
+// This is a simple regex-based approach for removing XML tags.
 func (d *Document) stripXmlTags(data string) string {
-	var output string
-	tokenizer := html.NewTokenizer(strings.NewReader(data))
-	prevToken := tokenizer.Token()
-loop:
-	for {
-		tok := tokenizer.Next()
-		switch {
-		case tok == html.ErrorToken:
-			break loop // End of the document,  done
-		case tok == html.StartTagToken:
-			prevToken = tokenizer.Token()
-		case tok == html.TextToken:
-			if prevToken.Data == "script" {
-				continue
-			}
-			TxtContent := strings.TrimSpace(html.UnescapeString(string(tokenizer.Text())))
-			if len(TxtContent) > 0 {
-				output += TxtContent
-			}
-		}
-	}
-	return output
+	// Remove XML tags using regex
+	re := regexp.MustCompile(`<[^>]*>`)
+	text := re.ReplaceAllString(data, "")
+
+	// Clean up whitespace and return
+	return strings.TrimSpace(text)
 }
 
 // GetFile returns the content of the given fileName if it exists.

@@ -59,7 +59,7 @@ func main() {
 		"company_name": customer["CompanyName"].(string),
 		"contact_name": customer["ContactName"].(string),
 		"email":        customer["Email"].(string),
-		"order_total": fmt.Sprintf("%.2f", 2500.00+800.00), // Manual calculation
+		"order_total":  fmt.Sprintf("%.2f", 2500.00+800.00), // Manual calculation
 	}
 
 	result1, err := docx.ProcessBytes(templateBytes, replacements)
@@ -145,21 +145,21 @@ Report ID: {{.ReportId}}`
 	reportData["TotalValue"] = totalValue
 	reportData["AverageOrder"] = totalValue / float64(len(customers))
 
-	// Convert to RTF
-	rtfReport, err := docx.ProcessTemplate(template, reportData)
+	// Convert to plain text
+	textReport, err := docx.ProcessTemplate(template, reportData)
 	if err != nil {
 		log.Fatalf("❌ ProcessTemplate failed: %v", err)
 	}
 
-	err = os.WriteFile("template_report.rtf", []byte(rtfReport), 0644)
+	err = os.WriteFile("template_report.txt", []byte(textReport), 0644)
 	if err != nil {
 		log.Fatalf("❌ Error saving template result: %v", err)
 	}
 
-	log.Printf("   ✅ Generated comprehensive report: template_report.rtf")
+	log.Printf("   ✅ Generated comprehensive report: template_report.txt")
 	log.Println()
 
-		// Method 3: ProcessTemplateBytes - Best of both worlds
+	// Method 3: ProcessTemplateBytes - Best of both worlds
 	log.Println("🚀 Method 3: ProcessTemplateBytes Approach")
 	log.Println("   ✅ Ultimate Solution:")
 	log.Println("   - Template processing + DOCX generation")
@@ -209,17 +209,17 @@ Prepared by: {{.ReportInfo.PreparedBy}}`
 	summaryData := map[string]interface{}{
 		"Customers": customers,
 		"ReportInfo": map[string]string{
-			"Date":         "2024-01-15",
+			"Date":           "2024-01-15",
 			"GenerationDate": "January 15, 2024 at 2:30 PM",
-			"ReportId":     "RPT-2024-001",
-			"PreparedBy":   "Sales Analytics Team",
+			"ReportId":       "RPT-2024-001",
+			"PreparedBy":     "Sales Analytics Team",
 		},
 		" Summary": map[string]interface{}{
-			"TotalValue":    totalValue,
-			"CustomerCount": len(customers),
-			"AverageOrder":  totalValue / float64(len(customers)),
+			"TotalValue":      totalValue,
+			"CustomerCount":   len(customers),
+			"AverageOrder":    totalValue / float64(len(customers)),
 			"HasVIPCustomers": len([]bool{totalValue > 5000}) > 0,
-			"VIPCount":      len(customers),
+			"VIPCount":        len(customers),
 		},
 	}
 
@@ -227,7 +227,7 @@ Prepared by: {{.ReportInfo.PreparedBy}}`
 	docConfig := docx.TemplateConfig{
 		PlaceholderKey: "key",
 		TemplateText:   documentTemplate,
-		Data:          summaryData,
+		Data:           summaryData,
 	}
 
 	result3, err := docx.ProcessTemplateBytes(templateBytes, docConfig)
@@ -249,7 +249,7 @@ Prepared by: {{.ReportInfo.PreparedBy}}`
 	log.Printf("| Method                  | Files Generated     | Use Case                          |")
 	log.Println("| ---------------------- | ------------------- | --------------------------------- |")
 	log.Printf("| ProcessBytes            | 1 DOCX file         | Simple placeholder replacement     |")
-	log.Printf("| ProcessTemplate         | 1 RTF file          | Dynamic text generation             |")
+	log.Printf("| ProcessTemplate         | 1 TXT file         | Dynamic text generation             |")
 	log.Printf("| ProcessTemplateBytes    | 1 DOCX file         | Professional document generation   |")
 	log.Println()
 	log.Println("🎯 RECOMMENDATIONS")
@@ -260,7 +260,7 @@ Prepared by: {{.ReportInfo.PreparedBy}}`
 	log.Println()
 	log.Println("   • Use ProcessTemplate when:")
 	log.Println("     - You need dynamic content generation")
-	log.Println("     - You want to work with text/RTF directly")
+	log.Println("     - You want to work with plain text directly")
 	log.Println("     - You're creating reports or templated content")
 	log.Println()
 	log.Println("   • Use ProcessTemplateBytes when:")

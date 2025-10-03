@@ -1,0 +1,7 @@
+Hello Alice,
+
+Your order #12345 for $99.99 has been shipped.
+
+🚀 Express shipping - delivery by tomorrow
+
+Thank you!

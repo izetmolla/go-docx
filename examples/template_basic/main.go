@@ -54,9 +54,9 @@ func main() {
 	log.Printf("   - No template logic or dynamic content")
 	log.Println()
 
-	// Example 2: ProcessTemplate - Template syntax to RTF conversion
-	log.Println("🔧 Example 2: ProcessTemplate - Template Syntax to RTF")
-	log.Println("This demonstrates converting Go template syntax to RTF format.")
+	// Example 2: ProcessTemplate - Template syntax to plain text conversion
+	log.Println("🔧 Example 2: ProcessTemplate - Template Syntax to Plain Text")
+	log.Println("This demonstrates converting Go template syntax to plain text format.")
 	log.Println()
 
 	// Simple template with basic substitution
@@ -100,24 +100,24 @@ Best regards,
 		"CompanyEmail":     "orders@widgets.co",
 	}
 
-	// Convert template to RTF
-	rtfText, err := docx.ProcessTemplate(basicTemplate, templateData)
+	// Convert template to plain text
+	textOutput, err := docx.ProcessTemplate(basicTemplate, templateData)
 	if err != nil {
 		log.Fatalf("❌ ProcessTemplate failed: %v", err)
 	}
 
-	// Save RTF output to file for inspection
-	rtfPath := "template_output.rtf"
-	err = os.WriteFile(rtfPath, []byte(rtfText), 0644)
+	// Save text output to file for inspection
+	textPath := "template_output.txt"
+	err = os.WriteFile(textPath, []byte(textOutput), 0644)
 	if err != nil {
-		log.Fatalf("❌ Error writing RTF file: %v", err)
+		log.Fatalf("❌ Error writing text file: %v", err)
 	}
 
-	log.Printf("✅ Successfully converted template to RTF format")
+	log.Printf("✅ Successfully converted template to plain text format")
 	log.Printf("   - Complex template with loops, conditions, and formatting")
 	log.Printf("   - Dynamic content generation")
-	log.Printf("   - RTF output saved to %s", rtfPath)
-	log.Printf("   - View the RTF file to see the rich text formatting")
+	log.Printf("   - Text output saved to %s", textPath)
+	log.Printf("   - View the text file to see the generated content")
 	log.Println()
 
 	// Example 3: ProcessTemplateBytes - Advanced DOCX processing with templates
@@ -218,12 +218,12 @@ Due Date: {{.DueDate}}
 	log.Println("📊 Summary of Examples:")
 	log.Println(strings.Repeat("=", 25))
 	log.Printf("Example 1 (ProcessBytes):     %-50s → Simple key-value replacement", outputPath1)
-	log.Printf("Example 2 (ProcessTemplate): %-25s → Template syntax to RTF", rtfPath)
+	log.Printf("Example 2 (ProcessTemplate): %-25s → Template syntax to plain text", textPath)
 	log.Printf("Example 3 (ProcessTemplateBytes): %-25s → Advanced DOCX processing", outputPath3)
 	log.Println()
 	log.Println("🎯 Key Differences:")
 	log.Println("   • ProcessBytes:       Static replacements, direct file processing")
-	log.Println("   • ProcessTemplate:     Template → RTF conversion, no DOCX involved")
+	log.Println("   • ProcessTemplate:     Template → Plain text conversion, no DOCX involved")
 	log.Println("   • ProcessTemplateBytes: Template + DOCX processing, most powerful")
 	log.Println()
 	log.Println("💡 Tips:")

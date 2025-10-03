@@ -56,9 +56,9 @@ data := map[string]interface{}{
     "Status": "shipped", "IsVip": true,
 }
 
-// Convert to RTF format
-rtfText, err := docx.ProcessTemplate(template, data)
-os.WriteFile("output.rtf", []byte(rtfText), 0644)
+// Generate plain text output
+text, err := docx.ProcessTemplate(template, data)
+os.WriteFile("output.txt", []byte(text), 0644)
 ```
 
 ### 3. ProcessTemplateDocx - DOCX Template Processing
@@ -80,6 +80,8 @@ data := map[string]interface{}{
 outputBytes, err := docx.ProcessTemplateDocx(docxBytes, data)
 os.WriteFile("processed_invoice.docx", outputBytes, 0644)
 ```
+
+**Note:** Missing data fields preserve original `{{...}}` tags instead of replacing with null/empty values, making it easy to identify incomplete data.
 
 ### 4. ProcessTemplateBytes - Advanced DOCX Processing
 ```go
@@ -140,7 +142,7 @@ go run examples/comparison/main.go
 | Method | Use For | Output |
 |--------|---------|---------|
 | **ProcessBytes** | Simple placeholder replacement | DOCX |
-| **ProcessTemplate** | Dynamic text generation | RTF |
+| **ProcessTemplate** | Dynamic text generation | Text |
 | **ProcessTemplateDocx** | DOCX templates with {{...}} tags | DOCX |
 | **ProcessTemplateBytes** | Professional document automation | DOCX |
 
@@ -154,7 +156,7 @@ go get github.com/izetmolla/go-docx
 
 - ✅ Full DOCX document support (headers, footers, images, styles)
 - ✅ Template processing with loops and conditions
-- ✅ Professional RTF formatting output
+- ✅ Plain text output for dynamic content generation
 - ✅ Byte-to-byte processing for memory efficiency
 - ✅ Modern Go 1.24+ with comprehensive error handling
 

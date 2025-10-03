@@ -152,3 +152,60 @@ func TestProcessTemplateDocx_EmptyData(t *testing.T) {
 		t.Fatalf("ProcessTemplateDocx should handle nil data gracefully")
 	}
 }
+
+func TestExecuteTemplatePlaceholder_MissingData(t *testing.T) {
+	t.Run("missing data preserves template", func(t *testing.T) {
+		template := "Hello {{.MissingField}}, order #{{.ExistingField}}"
+		data := map[string]interface{}{
+			"ExistingField": "12345",
+			// MissingField is intentionally missing
+		}
+
+		result, err := executeTemplatePlaceholder(template, data)
+		if err != nil {
+			t.Fatalf("executeTemplatePlaceholder failed: %v", err)
+		}
+
+		// Should preserve original template since MissingField is missing
+		if result != template {
+			t.Errorf("Expected original template to be preserved, got: %s", result)
+		}
+	})
+
+	t.Run("complete data replaces template", func(t *testing.T) {
+		template := "Hello {{.Name}}, order #{{.OrderID}}"
+		data := map[string]interface{}{
+			"Name":    "John",
+			"OrderID": "12345",
+		}
+
+		result, err := executeTemplatePlaceholder(template, data)
+		if err != nil {
+			t.Fatalf("executeTemplatePlaceholder failed: %v", err)
+		}
+
+		expected := "Hello John, order #12345"
+		if result != expected {
+			t.Errorf("Expected %s, got: %s", expected, result)
+		}
+	})
+
+	t.Run("partial data with missing field", func(t *testing.T) {
+		template := "Hello {{.Name}}, {{.MissingField}} - Order: {{.OrderID}}"
+		data := map[string]interface{}{
+			"Name":    "John",
+			"OrderID": "12345",
+			// MissingField is missing
+		}
+
+		result, err := executeTemplatePlaceholder(template, data)
+		if err != nil {
+			t.Fatalf("executeTemplatePlaceholder failed: %v", err)
+		}
+
+		// Should preserve original template since MissingField is missing
+		if result != template {
+			t.Errorf("Expected original template to be preserved, got: %s", result)
+		}
+	})
+}

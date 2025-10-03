@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	// Example 1: ProcessTemplate - Convert template syntax to RTF
-	// This demonstrates converting Go template syntax to RTF format
+	// Example 1: ProcessTemplate - Convert template syntax to plain text
+	// This demonstrates converting Go template syntax to plain text output
 
 	log.Println("=== Example 1: ProcessTemplate ===")
 	text := "Dear {{.Name}},\n\nYour order #{{.OrderID}} has been {{.Status}}.\n\nBest regards,\n{{.Company}}"
@@ -20,12 +20,12 @@ func main() {
 		"Company": "ACME Corp",
 	}
 
-	rtfText, err := docx.ProcessTemplate(text, data)
+	outputText, err := docx.ProcessTemplate(text, data)
 	if err != nil {
 		log.Fatalf("ProcessTemplate failed: %v", err)
 	}
 
-	log.Printf("RTF Output:\n%s\n", rtfText)
+	log.Printf("Text Output:\n%s\n", outputText)
 
 	// Example 2: ProcessTemplateBytes - Process DOCX with template content
 	// This demonstrates integrating template processing with DOCX manipulation
@@ -91,10 +91,10 @@ Generated on: {{.OrderDate}}`
 
 	advancedData["OrderDate"] = "2024-01-15"
 
-	advancedRTF, err := docx.ProcessTemplate(advancedTemplate, advancedData)
+	advancedOutput, err := docx.ProcessTemplate(advancedTemplate, advancedData)
 	if err != nil {
 		log.Fatalf("Advanced template processing failed: %v", err)
 	}
 
-	log.Printf("Advanced RTF Output:\n%s", advancedRTF)
+	log.Printf("Advanced Text Output:\n%s", advancedOutput)
 }

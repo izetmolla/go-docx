@@ -36,8 +36,8 @@ func main() {
 	log.Println("   ✅ Created: simple_output.docx")
 	log.Println()
 
-	// Example 2: ProcessTemplate (Text to RTF)
-	log.Println("🔧 Example 2: ProcessTemplate (Text → RTF)")
+	// Example 2: ProcessTemplate (Text to Plain Text)
+	log.Println("🔧 Example 2: ProcessTemplate (Text → Plain Text)")
 	template := `Hello {{.Name}},
 
 Your order #{{.OrderID}} for ${{printf "%.2f" .Amount}} has been {{.Status}}.
@@ -55,16 +55,16 @@ Thank you!`
 		"DeliveryDate":    "tomorrow",
 	}
 
-	rtf, err := docx.ProcessTemplate(template, data)
+	textOutput, err := docx.ProcessTemplate(template, data)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	os.WriteFile("template_output.rtf", []byte(rtf), 0644)
-	log.Println("   ✅ Created: template_output.rtf")
-	preview := rtf
-	if len(rtf) > 80 {
-		preview = rtf[:80]
+	os.WriteFile("template_output.txt", []byte(textOutput), 0644)
+	log.Println("   ✅ Created: template_output.txt")
+	preview := textOutput
+	if len(textOutput) > 80 {
+		preview = textOutput[:80]
 	}
 	log.Printf("   📝 Preview: %s...", preview)
 	log.Println()
@@ -110,17 +110,17 @@ Thank you!`
 File                             Method                Output Type
 ────────────────────────────────────────────────────────────────────
 simple_output.docx               ProcessBytes          DOCX
-template_output.rtf              ProcessTemplate       RTF  
+template_output.txt              ProcessTemplate       Text
 advanced_output.docx             ProcessTemplateBytes  DOCX
 
 💡 KEY DIFFERENCES:
 • ProcessBytes: Static replacements only
-• ProcessTemplate: Dynamic text generation → RTF  
+• ProcessTemplate: Dynamic text generation → Text  
 • ProcessTemplateBytes: Dynamic text generation → DOCX
 
 🎯 WHEN TO USE WHICH:
 • ProcessBytes: Simple placeholder replacement
-• ProcessTemplate: Text reports, RTF content
+• ProcessTemplate: Text reports, plain text content
 • ProcessTemplateBytes: Professional documents
 
 ✨ All files ready to open in Microsoft Word!
